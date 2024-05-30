@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Download Speed Test</title>
+    <title>Network Speed Test</title>
     <style>
         #network-speed {
             text-align: center;
@@ -22,6 +22,12 @@
             margin-top: 10px;
             transition: width 0.5s ease-in-out;
         }
+
+        #slow-network-message {
+            color: red;
+            font-weight: bold;
+            display: none;
+        }
     </style>
 </head>
 
@@ -29,34 +35,45 @@
     <div id="network-speed">
         <h2>Network Speed Test</h2>
         <button onclick="startDownloadTest()">Start Test</button>
+        <!-- Container for the network bar -->
         <div id="speed-results">
             <div id="network-bar"></div>
+            <p id="slow-network-message">Your network speed is very slow!</p>
         </div>
     </div>
+
     <script>
-        let startTime, endTime;
+        let startTime, endTime, download;
         let downloadSize = 1024 * 1024 * 5; // Size of download test file in bytes
+        let consecutiveFailures = 0;
+        const maxConsecutiveFailures = 5; // Maximum number of consecutive failures to consider as slow network
+
         function startDownloadTest() {
-            let downloadSize = 1024 * 1024 * 5; // Size of download test file in bytes
-
             startTime = (new Date()).getTime();
-            var download = new Image();
+            download = new Image();
             download.src = 'https://microservices.geniemd.net/com.geniemd.generic.restwrapper-1.0.0/WrapperController/GetS3File/1000089-clinic-files/6ce86601308a4044aab49052314f84b6.jpg?1717045057978?' + startTime; // Change 'path-to-your-test-image' to the actual path
-            download.onload = function () {
-                endTime = (new Date()).getTime();
-                calculateDownloadSpeed();
-            }
-            var interval = setInterval(function () {
-                console.log(download.complete);
-                if (download.complete) {
-                    console.dir(download);
-                    clearInterval(interval);
-                }
 
+            // Check if download is complete every second
+            var interval = setInterval(function () {
+                if (download.complete) {
+                    clearInterval(interval);
+                    endTime = (new Date()).getTime();
+                    calculateDownloadSpeed();
+                } else {
+                    // Increment consecutive failure counter
+                    consecutiveFailures++;
+                    // If consecutive failures exceed threshold, show slow network message
+                    if (consecutiveFailures >= maxConsecutiveFailures) {
+                        document.getElementById("slow-network-message").style.display = "block";
+                    }
+                }
             }, 1000);
         }
 
         function calculateDownloadSpeed() {
+            // Reset consecutive failure counter
+            consecutiveFailures = 0;
+
             var duration = (endTime - startTime) / 1000;
             var bitsLoaded = downloadSize * 8;
             var bps = (bitsLoaded / duration).toFixed(2);
@@ -70,8 +87,10 @@
             // Update network bar width
             var networkBar = document.getElementById("network-bar");
             networkBar.style.width = percentage + "%";
+
+            // Hide slow network message if displayed
+            document.getElementById("slow-network-message").style.display = "none";
         }
-        startDownloadTest();
     </script>
 </body>
 
