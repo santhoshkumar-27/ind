@@ -5,21 +5,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Download Speed Test</title>
+    <style>
+        #network-speed {
+            text-align: center;
+            padding: 20px;
+        }
+
+        #speed-results {
+            margin-top: 20px;
+        }
+
+        #network-bar {
+            width: 0%;
+            height: 20px;
+            background-color: #4CAF50;
+            margin-top: 10px;
+            transition: width 0.5s ease-in-out;
+        }
+    </style>
 </head>
 
 <body>
+    <div id="network-speed">
+        <h2>Network Speed Test</h2>
+        <button onclick="startDownloadTest()">Start Test</button>
+        <div id="speed-results">
+            <div id="network-bar"></div>
+        </div>
+    </div>
     <script>
         let startTime, endTime;
         let downloadSize = 1024 * 1024 * 5; // Size of download test file in bytes
-
         function startDownloadTest() {
+            let downloadSize = 1024 * 1024 * 5; // Size of download test file in bytes
+
             startTime = (new Date()).getTime();
             var download = new Image();
-            download.src = 'path-to-your-test-image?' + startTime; // Change 'path-to-your-test-image' to the actual path
+            download.src = 'https://microservices.geniemd.net/com.geniemd.generic.restwrapper-1.0.0/WrapperController/GetS3File/1000089-clinic-files/6ce86601308a4044aab49052314f84b6.jpg?1717045057978?' + startTime; // Change 'path-to-your-test-image' to the actual path
             download.onload = function () {
                 endTime = (new Date()).getTime();
                 calculateDownloadSpeed();
             }
+            var interval = setInterval(function () {
+                console.log(download.complete);
+                if (download.complete) {
+                    console.dir(download);
+                    clearInterval(interval);
+                }
+
+            }, 1000);
         }
 
         function calculateDownloadSpeed() {
@@ -28,13 +62,15 @@
             var bps = (bitsLoaded / duration).toFixed(2);
             var kbps = (bps / 1024).toFixed(2);
             var mbps = (kbps / 1024).toFixed(2);
+            var Mbps = (mbps / 5).toFixed(2);
 
-            console.log(`Your connection speed: 
-    ${bps} bps
-    ${kbps} kbps
-    ${mbps} mbps`);
+            // Calculate percentage for network bar width
+            var percentage = (Mbps / 100) * 100;
+
+            // Update network bar width
+            var networkBar = document.getElementById("network-bar");
+            networkBar.style.width = percentage + "%";
         }
-
         startDownloadTest();
     </script>
 </body>
